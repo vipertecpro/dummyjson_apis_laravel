@@ -1,13 +1,29 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.jsx";
 import {Head} from "@inertiajs/react";
 import {useEffect, useState} from "react";
-import {Button, Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
-import {ArrowDownTrayIcon} from "@heroicons/react/20/solid/index.js";
-import {Input} from "postcss";
+import {Button, Card, CardBody, CardHeader, Select, Typography} from "@material-tailwind/react";
 
 export default function ProductsList({auth, mustVerifyEmail, status}) {
     const [data, setData] = useState([]);
     const [category, setCategory] = useState(null);
+    const [categoriesList,setCategoriesList] = useState([]);
+
+    const fetchCategories = () => {
+        let fetchUrl = 'https://dummyjson.com/products/categories';
+        fetch(fetchUrl)
+            .then((response) => response.json())
+            .then((actualData) => {
+                if (actualData.length > 0) {
+                    setCategoriesList(actualData);
+                } else if (data.length > 0) {
+                    setCategoriesList(data);
+                }
+            })
+            .catch((err) => {
+                console.log(err.message);
+            });
+    }
+
     const fetchData = (category) => {
         let fetchUrl = 'https://dummyjson.com/products/';
         if (category !== null) {
@@ -59,6 +75,7 @@ export default function ProductsList({auth, mustVerifyEmail, status}) {
 
     useEffect(() => {
         fetchData(category);
+        fetchCategories()
     }, [category]);
     return (<>
         <AuthenticatedLayout
@@ -76,11 +93,25 @@ export default function ProductsList({auth, mustVerifyEmail, status}) {
                                     Products List
                                 </Typography>
                             </div>
-                            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-                                <Button variant="outlined" size="sm" onClick={(e) => setCategory(null)}>
-                                    Refresh
-                                </Button>
-                            </div>
+                            {categoriesList.length > 0 ?
+                                <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                                    <select
+                                        onChange={(e) => handleButton(e,e.target.value) }
+                                    >
+                                        {categoriesList.map((name, id) => {
+                                            return (<>
+                                                <option key={id} value={name} className="flex items-center gap-2">
+                                                    {name}
+                                                </option>
+                                            </>)
+                                        })}
+                                    </select>
+                                    <Button variant="outlined" size="sm" onClick={(e) => setCategory(null)}>
+                                        Refresh
+                                    </Button>
+                                </div>
+                                : null
+                            }
                         </div>
                     </CardHeader>
                     <CardBody className="overflow-scroll px-0">
